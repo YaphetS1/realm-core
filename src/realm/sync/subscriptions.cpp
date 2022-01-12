@@ -206,6 +206,13 @@ MutableSubscriptionSet::MutableSubscriptionSet(const SubscriptionStore* mgr, Tra
 {
 }
 
+void MutableSubscriptionSet::check_is_mutable() const
+{
+    if (m_tr->get_transact_stage() != DB::transact_Writing) {
+        throw LogicError(LogicError::wrong_transact_state);
+    }
+}
+
 MutableSubscriptionSet::iterator MutableSubscriptionSet::begin()
 {
     return m_subs.begin();
@@ -218,16 +225,19 @@ MutableSubscriptionSet::iterator MutableSubscriptionSet::end()
 
 MutableSubscriptionSet::iterator MutableSubscriptionSet::erase(const_iterator it)
 {
+    check_is_mutable();
     return m_subs.erase(it);
 }
 
 void MutableSubscriptionSet::clear()
 {
+    check_is_mutable();
     m_subs.clear();
 }
 
 void MutableSubscriptionSet::insert_sub(const Subscription& sub)
 {
+    check_is_mutable();
     m_subs.push_back(sub);
 }
 
@@ -235,6 +245,7 @@ std::pair<SubscriptionSet::iterator, bool>
 MutableSubscriptionSet::insert_or_assign_impl(iterator it, util::Optional<std::string> name,
                                               std::string object_class_name, std::string query_str)
 {
+    check_is_mutable();
     if (it != end()) {
         it->m_object_class_name = std::move(object_class_name);
         it->m_query_string = std::move(query_str);
@@ -273,6 +284,7 @@ std::pair<SubscriptionSet::iterator, bool> MutableSubscriptionSet::insert_or_ass
 
 void MutableSubscriptionSet::update_state(State new_state, util::Optional<std::string_view> error_str)
 {
+    check_is_mutable();
     auto old_state = state();
     switch (new_state) {
         case State::Uncommitted:
