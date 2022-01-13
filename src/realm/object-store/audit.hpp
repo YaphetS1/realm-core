@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2018 Realm Inc.
+// Copyright 2022 Realm Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,20 +16,36 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
+#include <realm/object-store/shared_realm.hpp>
+
 namespace realm {
-class Table;
 class TableView;
-template <typename>
-class BasicRowExpr;
-using RowExpr = BasicRowExpr<Table>;
+class Obj;
+struct ColKey;
 struct VersionID;
+class SyncUser;
+class AuditObjectSerializer;
+namespace util {
+class Logger;
+}
+
+struct AuditConfig {
+    std::shared_ptr<SyncUser> audit_user;
+    std::string partition_value_prefix = "audit-";
+    std::vector<std::pair<std::string, std::string>> metadata;
+    std::shared_ptr<AuditObjectSerializer> serializer;
+    std::shared_ptr<util::Logger> logger;
+};
 
 class AuditInterface {
 public:
-    virtual ~AuditInterface() {}
+    virtual ~AuditInterface() = default;
 
-    virtual void record_query(realm::VersionID, realm::TableView const&) = 0;
-    virtual void record_read(realm::VersionID, realm::RowExpr) = 0;
-    virtual void record_write(realm::VersionID, realm::VersionID) = 0;
+    virtual void record_query(VersionID, const TableView&) = 0;
+    virtual void record_read(VersionID, const Obj& obj, const Obj& parent, ColKey col) = 0;
+    virtual void record_write(VersionID old_version, VersionID new_version) = 0;
 };
+
+std::shared_ptr<AuditInterface> make_audit_context(Realm::Config const& parent_config,
+                                                   AuditConfig const& audit_config);
 } // namespace realm
