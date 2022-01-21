@@ -1044,7 +1044,8 @@ void Table::set_embedded(bool embedded)
 
     if (Replication* repl = get_repl()) {
         if (repl->get_history_type() == Replication::HistoryType::hist_SyncClient) {
-            throw std::logic_error(util::format("Cannot change '%1' to embedded when using Sync.", get_name()));
+            throw ExceptionForStatus(ErrorCodes::LogicError,
+                                     util::format("Cannot change '%1' to embedded when using Sync.", get_name()));
         }
     }
 
@@ -1055,7 +1056,9 @@ void Table::set_embedded(bool embedded)
 
     // Embedded objects cannot have a primary key.
     if (get_primary_key_column()) {
-        throw std::logic_error(util::format("Cannot change '%1' to embedded when using a primary key.", get_name()));
+        throw ExceptionForStatus(
+            ErrorCodes::LogicError,
+            util::format("Cannot change '%1' to embedded when using a primary key.", get_name()));
     }
 
     // `has_backlink_columns` indicates if the table is embedded in any other table.
@@ -1065,7 +1068,8 @@ void Table::set_embedded(bool embedded)
         return true;
     });
     if (!has_backlink_columns) {
-        throw std::logic_error(
+        throw ExceptionForStatus(
+            ErrorCodes::LogicError,
             util::format("Cannot change '%1' to embedded without backlink columns. Objects must be embedded in "
                          "at least one other class.",
                          get_name()));
@@ -1074,11 +1078,14 @@ void Table::set_embedded(bool embedded)
         for (auto object : *this) {
             size_t backlink_count = object.get_backlink_count();
             if (backlink_count == 0) {
-                throw std::logic_error(util::format(
-                    "At least one object in '%1' does not have a backlink (data would get lost).", get_name()));
+                throw ExceptionForStatus(
+                    ErrorCodes::LogicError,
+                    util::format("At least one object in '%1' does not have a backlink (data would get lost).",
+                                 get_name()));
             }
             else if (backlink_count > 1) {
-                throw std::logic_error(
+                throw ExceptionForStatus(
+                    ErrorCodes::LogicError,
                     util::format("At least one object in '%1' does have multiple backlinks.", get_name()));
             }
         }
@@ -1559,7 +1566,8 @@ bool Table::migrate_objects()
         std::unique_ptr<BPlusTree<int64_t>> list_acc;
 
         if (!(col_ndx < col_refs.size())) {
-            throw std::runtime_error(
+            throw ExceptionForStatus(
+                ErrorCodes::LogicError,
                 util::format("Objects in '%1' corrupted by previous upgrade attempt", get_name()));
         }
 
@@ -1728,7 +1736,7 @@ bool Table::migrate_objects()
 
 #if 0
     if (fastrand(100) < 20) {
-        throw util::runtime_error("Upgrade interrupted");
+        throw std::runtime_error("Upgrade interrupted"); // Can be used for testing
     }
 #endif
     return !has_link_columns;
@@ -2529,7 +2537,7 @@ TableView Table::find_all_string(ColKey col_key, StringData value) const
 
 TableView Table::find_all_binary(ColKey, BinaryData)
 {
-    throw util::runtime_error("Not implemented");
+    throw ExceptionForStatus(ErrorCodes::IllegalOperation, "Table::find_all_binary not supported");
 }
 
 TableView Table::find_all_binary(ColKey col_key, BinaryData value) const
@@ -2953,7 +2961,7 @@ Obj Table::create_object(GlobalKey object_id, const FieldValues& values)
 
         return obj;
     }
-    catch (const KeyAlreadyUsed&) {
+    catch (const KeyAlreadyUsed& e) {
         return m_clusters.get(key);
     }
 }
@@ -3536,7 +3544,8 @@ void Table::set_primary_key_column(ColKey col_key)
 
     if (Replication* repl = get_repl()) {
         if (repl->get_history_type() == Replication::HistoryType::hist_SyncClient) {
-            throw std::logic_error(
+            throw ExceptionForStatus(
+                ErrorCodes::LogicError,
                 util::format("Cannot change primary key property in '%1' when realm is synchronized", get_name()));
         }
     }
@@ -3592,7 +3601,8 @@ bool Table::contains_unique_values(ColKey col) const
 void Table::validate_column_is_unique(ColKey col) const
 {
     if (!contains_unique_values(col)) {
-        throw DuplicatePrimaryKeyValueException(get_name(), get_column_name(col));
+        throw DuplicatePrimaryKeyValueException(util::format(
+            "Primary key property '%1.%2' has duplicate values after migration.", get_name(), get_column_name(col)));
     }
 }
 
@@ -3657,7 +3667,8 @@ void Table::change_nullability(ColKey key_from, ColKey key_to, bool throw_on_nul
         for (size_t i = 0; i < sz; i++) {
             if (from_nullability && from_arr.is_null(i)) {
                 if (throw_on_null) {
-                    throw std::runtime_error(util::format("Objects in '%1' has null value(s) in property '%2'",
+                    throw ExceptionForStatus(ErrorCodes::LogicError,
+                                             util::format("Objects in '%1' has null value(s) in property '%2'",
                                                           get_name(), get_column_name(key_from)));
                 }
                 else {
@@ -3705,7 +3716,8 @@ void Table::change_nullability_list(ColKey key_from, ColKey key_to, bool throw_o
                     }
                     else {
                         if (throw_on_null) {
-                            throw std::runtime_error(
+                            throw ExceptionForStatus(
+                                ErrorCodes::LogicError,
                                 util::format("Objects in '%1' has null value(s) in list property '%2'", get_name(),
                                              get_column_name(key_from)));
                         }

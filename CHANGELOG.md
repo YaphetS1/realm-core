@@ -21,6 +21,7 @@
 ### Internals
 * SubscriptionStore's should be initialized with an implict empty SubscriptionSet so users can wait for query version zero to finish synchronizing. ((#5166)[https://github.com/realm/realm-core/pull/5166])
 * Fixed `Future::on_completion()` and added missing testing for it ((#5181)[https://github.com/realm/realm-core/pull/5181])
+* All exceptions thrown out of Core are now of type ExceptionForStatus. All use of std::runtime_error and std::logical_error etc. has stopped and the specialized error classes that beforehand were based on these are now based on ExceptionForStatus.
 
 ----------------------------------------------
 

@@ -175,12 +175,6 @@ bool Obj::is_valid() const noexcept
     return m_valid;
 }
 
-void Obj::check_valid() const
-{
-    if (!is_valid())
-        throw std::runtime_error("Object not alive");
-}
-
 void Obj::remove()
 {
     m_table.cast_away_const()->remove_object(m_key);
@@ -355,7 +349,7 @@ int64_t Obj::get<int64_t>(ColKey col_key) const
     if (col_key.get_attrs().test(col_attr_Nullable)) {
         auto val = _get<util::Optional<int64_t>>(col_key.get_index());
         if (!val) {
-            throw std::runtime_error("Cannot return null value");
+            throw ExceptionForStatus(ErrorCodes::IllegalOperation, "Obj::get<int64_t> cannot return null");
         }
         return *val;
     }
@@ -374,7 +368,7 @@ bool Obj::get<bool>(ColKey col_key) const
     if (col_key.get_attrs().test(col_attr_Nullable)) {
         auto val = _get<util::Optional<bool>>(col_key.get_index());
         if (!val) {
-            throw std::runtime_error("Cannot return null value");
+            throw ExceptionForStatus(ErrorCodes::IllegalOperation, "Obj::get<int64_t> cannot return null");
         }
         return *val;
     }

@@ -1104,7 +1104,7 @@ void DB::open(const std::string& path, bool no_create_file, const DBOptions opti
                     ss << path << ": Encrypted interprocess sharing is currently unsupported."
                        << "DB has been opened by pid: " << info->session_initiator_pid << ". Current pid is " << pid
                        << ".";
-                    throw std::runtime_error(ss.str());
+                    throw ExceptionForStatus(ErrorCodes::IllegalOperation, ss.str());
                 }
 
                 // We need per session agreement among all participants on the
@@ -1299,11 +1299,13 @@ void Transaction::replicate(Transaction* dest, Replication& repl) const
         if (!table->is_embedded()) {
             auto pk_col = table->get_primary_key_column();
             if (!pk_col)
-                throw std::runtime_error(
+                throw ExceptionForStatus(
+                    ErrorCodes::LogicError,
                     util::format("Class '%1' must have a primary key", Group::table_name_to_class_name(table_name)));
             auto pk_name = table->get_column_name(pk_col);
             if (pk_name != "_id")
-                throw std::runtime_error(
+                throw ExceptionForStatus(
+                    ErrorCodes::LogicError,
                     util::format("Primary key of class '%1' must be named '_id'. Current is '%2'",
                                  Group::table_name_to_class_name(table_name), pk_name));
             repl.add_class_with_primary_key(tk, table_name, DataType(pk_col.get_type()), pk_name,
@@ -1422,7 +1424,8 @@ bool DB::compact(bool bump_version_number, util::Optional<const char*> output_en
     // Verify that the lock file is still attached. There is no attempt to guard against
     // a race between close() and compact().
     if (is_attached() == false) {
-        throw std::runtime_error(m_db_path + ": compact must be done on an open/attached DB");
+        throw ExceptionForStatus(ErrorCodes::IllegalOperation,
+                                 m_db_path + ": compact must be done on an open/attached DB");
     }
     SharedInfo* info = m_file_map.get_addr();
     Durability dura = Durability(info->durability);
@@ -1523,7 +1526,8 @@ void DB::write_copy(StringData path, util::Optional<const char*> output_encrypti
     auto tr = start_read();
     if (auto hist = tr->get_history()) {
         if (!hist->no_pending_local_changes(tr->get_version())) {
-            throw std::runtime_error("Could not write file as not all client changes are integrated in server");
+            throw ExceptionForStatus(ErrorCodes::IllegalOperation,
+                                     "All client changes must be integrated in server before writing copy");
         }
     }
 
@@ -2128,7 +2132,8 @@ void DB::finish_begin_write()
     SharedInfo* info = m_file_map.get_addr();
     if (info->commit_in_critical_phase) {
         m_writemutex.unlock();
-        throw std::runtime_error("Crash of other process detected, session restart required");
+        throw ExceptionForStatus(ErrorCodes::RuntimeError,
+                                 "Crash of other process detected, session restart required");
     }
 
     m_alloc.set_read_only(false);

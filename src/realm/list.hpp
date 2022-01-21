@@ -654,7 +654,7 @@ inline T Lst<T>::get(size_t ndx) const
 {
     const auto current_size = size();
     if (ndx >= current_size) {
-        throw std::out_of_range("Index out of range");
+        throw LogicError(LogicError::collection_index_out_of_range);
     }
     return m_tree->get(ndx);
 }
@@ -794,7 +794,7 @@ void Lst<T>::move(size_t from, size_t to)
 {
     auto sz = size();
     if (from >= sz || to >= sz) {
-        throw std::out_of_range{"index out of bounds"};
+        throw LogicError(LogicError::collection_index_out_of_range);
     }
 
     if (from != to) {
@@ -824,7 +824,7 @@ void Lst<T>::swap(size_t ndx1, size_t ndx2)
 {
     auto sz = size();
     if (ndx1 >= sz || ndx2 >= sz) {
-        throw std::out_of_range{"index out of bounds"};
+        throw LogicError(LogicError::collection_index_out_of_range);
     }
 
     if (ndx1 != ndx2) {
@@ -862,7 +862,7 @@ void Lst<T>::insert(size_t ndx, T value)
 
     auto sz = size();
     if (ndx > sz)
-        throw std::out_of_range("Index out of range");
+        throw LogicError(LogicError::collection_index_out_of_range);
 
     ensure_created();
 
@@ -1044,7 +1044,7 @@ inline ObjKey LnkLst::get(size_t ndx) const
 {
     const auto current_size = size();
     if (ndx >= current_size) {
-        throw std::out_of_range("Index out of range");
+        throw LogicError(LogicError::collection_index_out_of_range);
     }
     return m_list.m_tree->get(virtual2real(ndx));
 }

@@ -17,7 +17,7 @@
  **************************************************************************/
 
 #include "realm/error_codes.hpp"
-
+#include <iostream>
 
 namespace realm {
 
@@ -36,6 +36,45 @@ bool ErrorCodes::is_a<ErrorCategory::generic_error>(ErrorCodes::Error error)
         case RuntimeError:
         case LogicError:
         case InvalidArgument:
+            return true;
+        default:
+            break;
+    }
+    return false;
+}
+
+template <>
+bool ErrorCodes::is_a<ErrorCategory::logic_error>(ErrorCodes::Error error)
+{
+    switch (error) {
+        case SerializationError:
+        case SyntaxError:
+            return true;
+        default:
+            break;
+    }
+    return false;
+}
+
+template <>
+bool ErrorCodes::is_a<ErrorCategory::runtime_error>(ErrorCodes::Error error)
+{
+    switch (error) {
+        case OutOfDiskSpace:
+        case InvalidQuery:
+            return true;
+        default:
+            break;
+    }
+    return false;
+}
+
+template <>
+bool ErrorCodes::is_a<ErrorCategory::invalid_argument>(ErrorCodes::Error error)
+{
+    switch (error) {
+        case InvalidPath:
+        case InvalidQueryArg:
             return true;
         default:
             break;
@@ -64,8 +103,6 @@ std::string_view ErrorCodes::error_string(Error code)
             return "OutOfMemory";
         case NoSuchTable:
             return "NoSuchTable";
-        case NoSuchObject:
-            return "NoSuchObject";
         case CrossTableLinkTarget:
             return "CrossTableLinkTarget";
         case UnsupportedFileFormatVersion:
@@ -78,20 +115,22 @@ std::string_view ErrorCodes::error_string(Error code)
             return "OutOfDiskSpace";
         case KeyNotFound:
             return "KeyNotFound";
-        case ColumnNotFound:
-            return "ColumnNotFound";
-        case ColumnExistsAlready:
-            return "ColumnExistsAlready";
+        case OutOfBounds:
+            return "OutOfBounds";
+        case IllegalOperation:
+            return "IllegalOperation";
         case KeyAlreadyUsed:
             return "KeyAlreadyUsed";
         case SerializationError:
             return "SerializationError";
-        case InvalidPathError:
-            return "InvalidPathError";
+        case InvalidPath:
+            return "InvalidPath";
         case DuplicatePrimaryKeyValue:
             return "DuplicatePrimaryKeyValue";
-        case InvalidQueryString:
-            return "InvalidQueryString";
+        case SyntaxError:
+            return "SyntaxError";
+        case InvalidQueryArg:
+            return "InvalidQueryArg";
         case InvalidQuery:
             return "InvalidQuery";
         case NotInATransaction:
@@ -114,6 +153,18 @@ std::string_view ErrorCodes::error_string(Error code)
             return "ReadOnlyProperty";
         case PropertyNotNullable:
             return "PropertyNotNullable";
+        case MaximumFileSizeExceeded:
+            return "MaximumFileSizeExceeded";
+        case TableNameInUse:
+            return "TableNameInUse";
+        case InvalidTableRef:
+            return "InvalidTableRef";
+        case BadChangeset:
+            return "BadChangeset";
+        case InvalidDictionaryKey:
+            return "InvalidDictionaryKey";
+        case InvalidDictionaryValue:
+            return "InvalidDictionaryValue";
         default:
             return "UnknownError";
     }
@@ -137,8 +188,6 @@ ErrorCodes::Error ErrorCodes::from_string(std::string_view name)
         return OutOfMemory;
     if (name == std::string_view("NoSuchTable"))
         return NoSuchTable;
-    if (name == std::string_view("NoSuchObject"))
-        return NoSuchObject;
     if (name == std::string_view("CrossTableLinkTarget"))
         return CrossTableLinkTarget;
     if (name == std::string_view("UnsupportedFileFormatVersion"))
@@ -151,20 +200,22 @@ ErrorCodes::Error ErrorCodes::from_string(std::string_view name)
         return OutOfDiskSpace;
     if (name == std::string_view("KeyNotFound"))
         return KeyNotFound;
-    if (name == std::string_view("ColumnNotFound"))
-        return ColumnNotFound;
-    if (name == std::string_view("ColumnExistsAlready"))
-        return ColumnExistsAlready;
+    if (name == std::string_view("OutOfBounds"))
+        return OutOfBounds;
+    if (name == std::string_view("IllegalOperation"))
+        return IllegalOperation;
     if (name == std::string_view("KeyAlreadyUsed"))
         return KeyAlreadyUsed;
     if (name == std::string_view("SerializationError"))
         return SerializationError;
-    if (name == std::string_view("InvalidPathError"))
-        return InvalidPathError;
+    if (name == std::string_view("InvalidPath"))
+        return InvalidPath;
     if (name == std::string_view("DuplicatePrimaryKeyValue"))
         return DuplicatePrimaryKeyValue;
-    if (name == std::string_view("InvalidQueryString"))
-        return InvalidQueryString;
+    if (name == std::string_view("SyntaxError"))
+        return SyntaxError;
+    if (name == std::string_view("InvalidQueryArg"))
+        return InvalidQueryArg;
     if (name == std::string_view("InvalidQuery"))
         return InvalidQuery;
     if (name == std::string_view("NotInATransaction"))
@@ -187,6 +238,18 @@ ErrorCodes::Error ErrorCodes::from_string(std::string_view name)
         return ReadOnlyProperty;
     if (name == std::string_view("PropertyNotNullable"))
         return PropertyNotNullable;
+    if (name == std::string_view("MaximumFileSizeExceeded"))
+        return MaximumFileSizeExceeded;
+    if (name == std::string_view("TableNameInUse"))
+        return TableNameInUse;
+    if (name == std::string_view("InvalidTableRef"))
+        return InvalidTableRef;
+    if (name == std::string_view("BadChangeset"))
+        return BadChangeset;
+    if (name == std::string_view("InvalidDictionaryKey"))
+        return InvalidDictionaryKey;
+    if (name == std::string_view("InvalidDictionaryValue"))
+        return InvalidDictionaryValue;
     return UnknownError;
 }
 

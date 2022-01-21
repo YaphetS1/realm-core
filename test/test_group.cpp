@@ -179,7 +179,24 @@ TEST(Group_DoubleOpening)
         Group group((Group::unattached_tag()));
 
         group.open(path, crypt_key(), Group::mode_ReadWrite);
-        CHECK_LOGIC_ERROR(group.open(path, crypt_key(), Group::mode_ReadWrite), LogicError::wrong_group_state);
+        ([&] {
+            try {
+                (group.open(path, crypt_key(), Group::mode_ReadWrite));
+                test_context.throw_ex_failed("/home/joergen/wip/realm-mono/test/test_group.cpp", 182,
+                                             "group.open(path, crypt_key(), Group::mode_ReadWrite)",
+                                             "realm::LogicError", "e.kind() == LogicError::wrong_group_state");
+            }
+            catch (realm::LogicError& e) {
+                if (e.kind() == LogicError::wrong_group_state) {
+                    test_context.check_succeeded();
+                    return true;
+                }
+                test_context.throw_ex_cond_failed("/home/joergen/wip/realm-mono/test/test_group.cpp", 182,
+                                                  "group.open(path, crypt_key(), Group::mode_ReadWrite)",
+                                                  "realm::LogicError", "e.kind() == LogicError::wrong_group_state");
+            }
+            return false;
+        }());
     }
 
     // Buffer-based open()

@@ -17,6 +17,7 @@
  **************************************************************************/
 
 #include "realm/error_codes.hpp"
+#include <iostream>
 
 //#set $codes_with_extra = [ec for ec in $codes if ec.extra]
 //#set $codes_with_non_optional_extra = [ec for ec in $codes if ec.extra and not ec.extraIsOptional]

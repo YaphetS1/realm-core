@@ -70,7 +70,7 @@ public:
     {
         const auto current_size = size();
         if (ndx >= current_size) {
-            throw std::out_of_range("Index out of range");
+            throw LogicError(LogicError::collection_index_out_of_range);
         }
         return m_tree->get(ndx);
     }
@@ -1022,7 +1022,7 @@ inline ObjKey LnkSet::get(size_t ndx) const
 {
     const auto current_size = size();
     if (ndx >= current_size) {
-        throw std::out_of_range("Index out of range");
+        throw LogicError(LogicError::collection_index_out_of_range);
     }
     return m_set.m_tree->get(virtual2real(ndx));
 }

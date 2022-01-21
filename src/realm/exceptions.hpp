@@ -22,55 +22,49 @@
 #include <stdexcept>
 
 #include <realm/util/features.h>
-#include <realm/util/backtrace.hpp>
-#include <realm/util/to_string.hpp>
+#include <realm/status.hpp>
 
 namespace realm {
 
-using util::ExceptionWithBacktrace;
-
 /// Thrown by various functions to indicate that a specified table does not
 /// exist.
-class NoSuchTable : public ExceptionWithBacktrace<std::exception> {
+class NoSuchTable : public ExceptionForStatus {
 public:
-    const char* message() const noexcept override;
+    NoSuchTable()
+        : ExceptionForStatus(ErrorCodes::NoSuchTable, "No such table exists")
+    {
+    }
 };
 
-class InvalidTableRef : public ExceptionWithBacktrace<std::exception> {
+class InvalidTableRef : public ExceptionForStatus {
 public:
     InvalidTableRef(const char* cause)
-        : m_message(cause)
+        : ExceptionForStatus(ErrorCodes::InvalidTableRef, cause)
     {
     }
-    const char* message() const noexcept override
-    {
-        return m_message.c_str();
-    }
-    std::string m_message;
 };
 
 
 /// Thrown by various functions to indicate that a specified table name is
 /// already in use.
-class TableNameInUse : public ExceptionWithBacktrace<std::exception> {
+class TableNameInUse : public ExceptionForStatus {
 public:
-    const char* message() const noexcept override;
+    TableNameInUse()
+        : ExceptionForStatus(ErrorCodes::TableNameInUse, "The specified table name is already in use")
+    {
+    }
 };
 
 
 // Thrown by functions that require a table to **not** be the target of link
 // columns, unless those link columns are part of the table itself.
-class CrossTableLinkTarget : public ExceptionWithBacktrace<std::exception> {
+class CrossTableLinkTarget : public ExceptionForStatus {
 public:
-    const char* message() const noexcept override;
-};
-
-
-/// Thrown by various functions to indicate that the dynamic type of a table
-/// does not match a particular other table type (dynamic or static).
-class DescriptorMismatch : public ExceptionWithBacktrace<std::exception> {
-public:
-    const char* message() const noexcept override;
+    CrossTableLinkTarget()
+        : ExceptionForStatus(ErrorCodes::CrossTableLinkTarget,
+                             "Multiple sync agents attempted to join the same session")
+    {
+    }
 };
 
 
@@ -78,9 +72,14 @@ public:
 /// constructor when opening a database that uses a deprecated file format
 /// and/or a deprecated history schema which this version of Realm cannot
 /// upgrade from.
-class UnsupportedFileFormatVersion : public ExceptionWithBacktrace<> {
+class UnsupportedFileFormatVersion : public ExceptionForStatus {
 public:
-    UnsupportedFileFormatVersion(int source_version);
+    UnsupportedFileFormatVersion(int version)
+        : ExceptionForStatus(ErrorCodes::UnsupportedFileFormatVersion,
+                             util::format("Database has an unsupported version (%1) and cannot be upgraded", version))
+        , source_version(version)
+    {
+    }
     /// The unsupported version of the file.
     int source_version = 0;
 };
@@ -89,88 +88,117 @@ public:
 /// Thrown when a sync agent attempts to join a session in which there is
 /// already a sync agent. A session may only contain one sync agent at any given
 /// time.
-class MultipleSyncAgents : public ExceptionWithBacktrace<std::exception> {
+class MultipleSyncAgents : public ExceptionForStatus {
 public:
-    const char* message() const noexcept override;
+    MultipleSyncAgents()
+        : ExceptionForStatus(ErrorCodes::MultipleSyncAgents,
+                             "Multiple sync agents attempted to join the same session")
+    {
+    }
 };
 
 
 /// Thrown when memory can no longer be mapped to. When mmap/remap fails.
-class AddressSpaceExhausted : public std::runtime_error {
+class AddressSpaceExhausted : public ExceptionForStatus {
 public:
-    AddressSpaceExhausted(const std::string& msg);
+    AddressSpaceExhausted(const std::string& msg)
+        : ExceptionForStatus(ErrorCodes::AddressSpaceExhausted, msg)
+    {
+    }
     /// runtime_error::what() returns the msg provided in the constructor.
 };
 
 /// Thrown when creating references that are too large to be contained in our ref_type (size_t)
-class MaximumFileSizeExceeded : public std::runtime_error {
+class MaximumFileSizeExceeded : public ExceptionForStatus {
 public:
-    MaximumFileSizeExceeded(const std::string& msg);
+    MaximumFileSizeExceeded(const std::string& msg)
+        : ExceptionForStatus(ErrorCodes::MaximumFileSizeExceeded, msg)
+    {
+    }
     /// runtime_error::what() returns the msg provided in the constructor.
 };
 
 /// Thrown when writing fails because the disk is full.
-class OutOfDiskSpace : public std::runtime_error {
+class OutOfDiskSpace : public ExceptionForStatus {
 public:
-    OutOfDiskSpace(const std::string& msg);
+    OutOfDiskSpace(const std::string& msg)
+        : ExceptionForStatus(ErrorCodes::OutOfDiskSpace, msg)
+    {
+    }
     /// runtime_error::what() returns the msg provided in the constructor.
 };
 
 /// Thrown when a key can not by found
-class KeyNotFound : public std::runtime_error {
+class KeyNotFound : public ExceptionForStatus {
 public:
     KeyNotFound(const std::string& msg)
-        : std::runtime_error(msg)
+        : ExceptionForStatus(ErrorCodes::KeyNotFound, msg)
     {
     }
 };
 
 /// Thrown when a key is already existing when trying to create a new object
-class KeyAlreadyUsed : public std::runtime_error {
+class KeyAlreadyUsed : public ExceptionForStatus {
 public:
     KeyAlreadyUsed(const std::string& msg)
-        : std::runtime_error(msg)
+        : ExceptionForStatus(ErrorCodes::KeyAlreadyUsed, msg)
     {
     }
 };
 
-// SerialisationError intentionally does not inherit ExceptionWithBacktrace
-// because the query-based-sync permissions queries generated on the server
-// use a LinksToNode which is not currently serialisable (this limitation can
-// be lifted in core 6 given stable ids). Coupled with query metrics which
-// serialize all queries, the capturing of the stack for these frequent
-// permission queries shows up in performance profiles.
-class SerialisationError : public std::runtime_error {
+class SerialisationError : public ExceptionForStatus {
 public:
-    SerialisationError(const std::string& msg);
-    /// runtime_error::what() returns the msg provided in the constructor.
+    SerialisationError(const std::string& msg)
+        : ExceptionForStatus(ErrorCodes::LogicError, msg)
+    {
+    }
 };
 
 // thrown when a user constructed link path is not a valid input
-class InvalidPathError : public std::runtime_error {
+class InvalidPathError : public ExceptionForStatus {
 public:
-    InvalidPathError(const std::string& msg);
-    /// runtime_error::what() returns the msg provided in the constructor.
+    InvalidPathError(const std::string& msg)
+        : ExceptionForStatus(ErrorCodes::InvalidPath, msg)
+    {
+    }
 };
 
-class DuplicatePrimaryKeyValueException : public std::logic_error {
+class DuplicatePrimaryKeyValueException : public ExceptionForStatus {
 public:
-    DuplicatePrimaryKeyValueException(std::string object_type, std::string property);
-
-    std::string const& object_type() const
+    DuplicatePrimaryKeyValueException(std::string_view msg)
+        : ExceptionForStatus(ErrorCodes::DuplicatePrimaryKeyValue, msg)
     {
-        return m_object_type;
     }
-    std::string const& property() const
-    {
-        return m_property;
-    }
-
-private:
-    std::string m_object_type;
-    std::string m_property;
 };
 
+namespace query_parser {
+
+/// Exception thrown when parsing fails due to invalid syntax.
+struct SyntaxError : ExceptionForStatus {
+    SyntaxError(const std::string& msg)
+        : ExceptionForStatus(ErrorCodes::SyntaxError, msg)
+    {
+    }
+};
+
+/// Exception thrown when binding a syntactically valid query string in a
+/// context where it does not make sense.
+struct InvalidQueryError : ExceptionForStatus {
+    InvalidQueryError(const std::string& msg)
+        : ExceptionForStatus(ErrorCodes::InvalidQuery, msg)
+    {
+    }
+};
+
+/// Exception thrown when there is a problem accessing the arguments in a query string
+struct InvalidQueryArgError : ExceptionForStatus {
+    InvalidQueryArgError(const std::string& msg)
+        : ExceptionForStatus(ErrorCodes::InvalidQueryArg, msg)
+    {
+    }
+};
+
+} // namespace query_parser
 
 /// The \c LogicError exception class is intended to be thrown only when
 /// applications (or bindings) violate rules that are stated (or ought to have
@@ -201,7 +229,7 @@ private:
 /// exception being thrown. The whole point of properly documenting "Undefined
 /// Behaviour" cases is to help the user know what the limits are, without
 /// constraining the database to handle every and any use-case thrown at it.
-class LogicError : public ExceptionWithBacktrace<std::exception> {
+class LogicError : public ExceptionForStatus {
 public:
     enum ErrorKind {
         string_too_big,
@@ -214,7 +242,7 @@ public:
         row_index_out_of_range,
         column_index_out_of_range,
         string_position_out_of_range,
-        link_index_out_of_range,
+        collection_index_out_of_range,
         bad_version,
         illegal_type,
 
@@ -299,89 +327,21 @@ public:
         collection_type_mismatch
     };
 
-    LogicError(ErrorKind message);
+    LogicError(ErrorKind kind)
+        : ExceptionForStatus(ErrorCodes::LogicError, message(kind))
+        , m_kind(kind)
+    {
+    }
 
-    const char* message() const noexcept override;
-    ErrorKind kind() const noexcept;
+    static const char* message(ErrorKind kind) noexcept;
+    ErrorKind kind() const noexcept
+    {
+        return m_kind;
+    }
 
 private:
     ErrorKind m_kind;
 };
-
-
-// Implementation:
-
-// LCOV_EXCL_START (Wording of what() strings are not to be tested)
-
-inline const char* NoSuchTable::message() const noexcept
-{
-    return "No such table exists";
-}
-
-inline const char* TableNameInUse::message() const noexcept
-{
-    return "The specified table name is already in use";
-}
-
-inline const char* CrossTableLinkTarget::message() const noexcept
-{
-    return "Table is target of cross-table link columns";
-}
-
-inline const char* DescriptorMismatch::message() const noexcept
-{
-    return "Table descriptor mismatch";
-}
-
-inline UnsupportedFileFormatVersion::UnsupportedFileFormatVersion(int version)
-    : ExceptionWithBacktrace<>(
-          util::format("Database has an unsupported version (%1) and cannot be upgraded", version))
-    , source_version(version)
-{
-}
-
-inline const char* MultipleSyncAgents::message() const noexcept
-{
-    return "Multiple sync agents attempted to join the same session";
-}
-
-// LCOV_EXCL_STOP
-
-inline AddressSpaceExhausted::AddressSpaceExhausted(const std::string& msg)
-    : std::runtime_error(msg)
-{
-}
-
-inline MaximumFileSizeExceeded::MaximumFileSizeExceeded(const std::string& msg)
-    : std::runtime_error(msg)
-{
-}
-
-inline OutOfDiskSpace::OutOfDiskSpace(const std::string& msg)
-    : std::runtime_error(msg)
-{
-}
-
-inline SerialisationError::SerialisationError(const std::string& msg)
-    : std::runtime_error(msg)
-{
-}
-
-inline InvalidPathError::InvalidPathError(const std::string& msg)
-    : runtime_error(msg)
-{
-}
-
-inline LogicError::LogicError(LogicError::ErrorKind k)
-    : m_kind(k)
-{
-}
-
-inline LogicError::ErrorKind LogicError::kind() const noexcept
-{
-    return m_kind;
-}
-
 
 } // namespace realm
 

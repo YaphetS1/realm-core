@@ -14,8 +14,11 @@ namespace sync {
 
 using InternStrings = util::metered::vector<StringBufferRange>;
 
-struct BadChangesetError : ExceptionWithBacktrace<std::runtime_error> {
-    using ExceptionWithBacktrace<std::runtime_error>::ExceptionWithBacktrace;
+struct BadChangesetError : ExceptionForStatus {
+    BadChangesetError(const std::string& msg)
+        : ExceptionForStatus(ErrorCodes::BadChangeset, msg)
+    {
+    }
 };
 
 struct Changeset {

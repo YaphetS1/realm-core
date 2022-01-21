@@ -2268,18 +2268,19 @@ public:
         m_dT = 100.0;
         m_condition_column_key1 = column1;
         m_condition_column_key2 = column2;
+        if (m_condition_column_key1.is_collection() || m_condition_column_key2.is_collection()) {
+            throw ExceptionForStatus(ErrorCodes::InvalidQuery,
+                                     util::format("queries comparing two properties are not yet supported for "
+                                                  "collections (list/set/dictionary) (%1 and %2)",
+                                                  ParentNode::m_table->get_column_name(m_condition_column_key1),
+                                                  ParentNode::m_table->get_column_name(m_condition_column_key2)));
+        }
     }
 
     ~TwoColumnsNodeBase() noexcept override {}
     void table_changed() override
     {
         if (this->m_table) {
-            if (m_condition_column_key1.is_collection() || m_condition_column_key2.is_collection()) {
-                throw std::runtime_error(util::format("queries comparing two properties are not yet supported for "
-                                                      "collections (list/set/dictionary) (%1 and %2)",
-                                                      ParentNode::m_table->get_column_name(m_condition_column_key1),
-                                                      ParentNode::m_table->get_column_name(m_condition_column_key2)));
-            }
             ParentNode::m_table->check_column(m_condition_column_key1);
             ParentNode::m_table->check_column(m_condition_column_key2);
         }

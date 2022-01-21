@@ -27,6 +27,9 @@ namespace realm {
 
 enum class ErrorCategory {
     generic_error,
+    logic_error,
+    runtime_error,
+    invalid_argument,
 };
 
 /*
@@ -49,20 +52,20 @@ public:
         InvalidArgument = 5,
         OutOfMemory = 6,
         NoSuchTable = 7,
-        NoSuchObject = 8,
-        CrossTableLinkTarget = 9,
-        UnsupportedFileFormatVersion = 10,
-        MultipleSyncAgents = 11,
-        AddressSpaceExhausted = 12,
-        OutOfDiskSpace = 13,
-        KeyNotFound = 14,
-        ColumnNotFound = 15,
-        ColumnExistsAlready = 16,
-        KeyAlreadyUsed = 17,
-        SerializationError = 18,
-        InvalidPathError = 19,
-        DuplicatePrimaryKeyValue = 20,
-        InvalidQueryString = 21,
+        CrossTableLinkTarget = 8,
+        UnsupportedFileFormatVersion = 9,
+        MultipleSyncAgents = 10,
+        AddressSpaceExhausted = 11,
+        OutOfDiskSpace = 12,
+        KeyNotFound = 13,
+        OutOfBounds = 14,
+        IllegalOperation = 15,
+        KeyAlreadyUsed = 16,
+        SerializationError = 17,
+        InvalidPath = 18,
+        DuplicatePrimaryKeyValue = 19,
+        SyntaxError = 20,
+        InvalidQueryArg = 21,
         InvalidQuery = 22,
         NotInATransaction = 23,
         WrongThread = 24,
@@ -74,6 +77,12 @@ public:
         ModifyPrimaryKey = 30,
         ReadOnlyProperty = 31,
         PropertyNotNullable = 32,
+        MaximumFileSizeExceeded = 33,
+        TableNameInUse = 34,
+        InvalidTableRef = 35,
+        BadChangeset = 36,
+        InvalidDictionaryKey = 37,
+        InvalidDictionaryValue = 38,
         MaxError
     };
 
@@ -95,6 +104,18 @@ public:
     static bool is_generic_error(Error code);
     template <typename ErrorContainer>
     static bool is_generic_error(const ErrorContainer& object);
+
+    static bool is_logic_error(Error code);
+    template <typename ErrorContainer>
+    static bool is_logic_error(const ErrorContainer& object);
+
+    static bool is_runtime_error(Error code);
+    template <typename ErrorContainer>
+    static bool is_runtime_error(const ErrorContainer& object);
+
+    static bool is_invalid_argument(Error code);
+    template <typename ErrorContainer>
+    static bool is_invalid_argument(const ErrorContainer& object);
 };
 
 std::ostream& operator<<(std::ostream& stream, ErrorCodes::Error code);
@@ -118,6 +139,51 @@ template <typename ErrorContainer>
 inline bool ErrorCodes::is_generic_error(const ErrorContainer& object)
 {
     return is_a<ErrorCategory::generic_error>(object.code());
+}
+
+// Category function declarations for "logic_error"
+template <>
+bool ErrorCodes::is_a<ErrorCategory::logic_error>(Error code);
+
+inline bool ErrorCodes::is_logic_error(Error code)
+{
+    return is_a<ErrorCategory::logic_error>(code);
+}
+
+template <typename ErrorContainer>
+inline bool ErrorCodes::is_logic_error(const ErrorContainer& object)
+{
+    return is_a<ErrorCategory::logic_error>(object.code());
+}
+
+// Category function declarations for "runtime_error"
+template <>
+bool ErrorCodes::is_a<ErrorCategory::runtime_error>(Error code);
+
+inline bool ErrorCodes::is_runtime_error(Error code)
+{
+    return is_a<ErrorCategory::runtime_error>(code);
+}
+
+template <typename ErrorContainer>
+inline bool ErrorCodes::is_runtime_error(const ErrorContainer& object)
+{
+    return is_a<ErrorCategory::runtime_error>(object.code());
+}
+
+// Category function declarations for "invalid_argument"
+template <>
+bool ErrorCodes::is_a<ErrorCategory::invalid_argument>(Error code);
+
+inline bool ErrorCodes::is_invalid_argument(Error code)
+{
+    return is_a<ErrorCategory::invalid_argument>(code);
+}
+
+template <typename ErrorContainer>
+inline bool ErrorCodes::is_invalid_argument(const ErrorContainer& object)
+{
+    return is_a<ErrorCategory::invalid_argument>(object.code());
 }
 
 /**
@@ -145,8 +211,6 @@ constexpr inline bool is_named_code<ErrorCodes::OutOfMemory> = true;
 template <>
 constexpr inline bool is_named_code<ErrorCodes::NoSuchTable> = true;
 template <>
-constexpr inline bool is_named_code<ErrorCodes::NoSuchObject> = true;
-template <>
 constexpr inline bool is_named_code<ErrorCodes::CrossTableLinkTarget> = true;
 template <>
 constexpr inline bool is_named_code<ErrorCodes::UnsupportedFileFormatVersion> = true;
@@ -159,19 +223,21 @@ constexpr inline bool is_named_code<ErrorCodes::OutOfDiskSpace> = true;
 template <>
 constexpr inline bool is_named_code<ErrorCodes::KeyNotFound> = true;
 template <>
-constexpr inline bool is_named_code<ErrorCodes::ColumnNotFound> = true;
+constexpr inline bool is_named_code<ErrorCodes::OutOfBounds> = true;
 template <>
-constexpr inline bool is_named_code<ErrorCodes::ColumnExistsAlready> = true;
+constexpr inline bool is_named_code<ErrorCodes::IllegalOperation> = true;
 template <>
 constexpr inline bool is_named_code<ErrorCodes::KeyAlreadyUsed> = true;
 template <>
 constexpr inline bool is_named_code<ErrorCodes::SerializationError> = true;
 template <>
-constexpr inline bool is_named_code<ErrorCodes::InvalidPathError> = true;
+constexpr inline bool is_named_code<ErrorCodes::InvalidPath> = true;
 template <>
 constexpr inline bool is_named_code<ErrorCodes::DuplicatePrimaryKeyValue> = true;
 template <>
-constexpr inline bool is_named_code<ErrorCodes::InvalidQueryString> = true;
+constexpr inline bool is_named_code<ErrorCodes::SyntaxError> = true;
+template <>
+constexpr inline bool is_named_code<ErrorCodes::InvalidQueryArg> = true;
 template <>
 constexpr inline bool is_named_code<ErrorCodes::InvalidQuery> = true;
 template <>
@@ -194,6 +260,18 @@ template <>
 constexpr inline bool is_named_code<ErrorCodes::ReadOnlyProperty> = true;
 template <>
 constexpr inline bool is_named_code<ErrorCodes::PropertyNotNullable> = true;
+template <>
+constexpr inline bool is_named_code<ErrorCodes::MaximumFileSizeExceeded> = true;
+template <>
+constexpr inline bool is_named_code<ErrorCodes::TableNameInUse> = true;
+template <>
+constexpr inline bool is_named_code<ErrorCodes::InvalidTableRef> = true;
+template <>
+constexpr inline bool is_named_code<ErrorCodes::BadChangeset> = true;
+template <>
+constexpr inline bool is_named_code<ErrorCodes::InvalidDictionaryKey> = true;
+template <>
+constexpr inline bool is_named_code<ErrorCodes::InvalidDictionaryValue> = true;
 
 //
 // ErrorCategoriesFor
@@ -222,6 +300,30 @@ struct ErrorCategoriesForImpl<ErrorCodes::LogicError> {
 template <>
 struct ErrorCategoriesForImpl<ErrorCodes::InvalidArgument> {
     using type = CategoryList<ErrorCategory::generic_error>;
+};
+template <>
+struct ErrorCategoriesForImpl<ErrorCodes::OutOfDiskSpace> {
+    using type = CategoryList<ErrorCategory::runtime_error>;
+};
+template <>
+struct ErrorCategoriesForImpl<ErrorCodes::SerializationError> {
+    using type = CategoryList<ErrorCategory::logic_error>;
+};
+template <>
+struct ErrorCategoriesForImpl<ErrorCodes::InvalidPath> {
+    using type = CategoryList<ErrorCategory::invalid_argument>;
+};
+template <>
+struct ErrorCategoriesForImpl<ErrorCodes::SyntaxError> {
+    using type = CategoryList<ErrorCategory::logic_error>;
+};
+template <>
+struct ErrorCategoriesForImpl<ErrorCodes::InvalidQueryArg> {
+    using type = CategoryList<ErrorCategory::invalid_argument>;
+};
+template <>
+struct ErrorCategoriesForImpl<ErrorCodes::InvalidQuery> {
+    using type = CategoryList<ErrorCategory::runtime_error>;
 };
 
 template <ErrorCodes::Error code>

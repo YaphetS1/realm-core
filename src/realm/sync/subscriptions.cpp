@@ -405,7 +405,7 @@ void MutableSubscriptionSet::process_notifications()
 
     for (auto& req : to_finish) {
         if (new_state == State::Error && req.version == my_version) {
-            req.promise.set_error({ErrorCodes::RuntimeError, error_str()});
+            req.promise.set_error({ErrorCodes::RuntimeError, std::string_view(error_str())});
         }
         else if (req.version < my_version) {
             req.promise.emplace_value(State::Superceded);

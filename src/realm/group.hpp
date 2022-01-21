@@ -1076,7 +1076,7 @@ inline TableRef Group::get_or_add_table_with_primary_key(StringData name, DataTy
     if (TableRef table = get_table(name)) {
         if (!table->get_primary_key_column() || table->get_column_name(table->get_primary_key_column()) != pk_name ||
             table->is_nullable(table->get_primary_key_column()) != nullable) {
-            throw std::runtime_error("Inconsistent schema");
+            return {};
         }
         return table;
     }
