@@ -2961,7 +2961,7 @@ Obj Table::create_object(GlobalKey object_id, const FieldValues& values)
 
         return obj;
     }
-    catch (const KeyAlreadyUsed& e) {
+    catch (const KeyAlreadyUsed&) {
         return m_clusters.get(key);
     }
 }
