@@ -2428,7 +2428,7 @@ void DB::reserve(size_t size)
 }
 #endif
 
-bool DB::call_with_lock(const std::string& realm_path, CallbackWithLock callback)
+bool DB::call_with_lock(const std::string& realm_path, CallbackWithLock&& callback)
 {
     auto lockfile_path = get_core_file(realm_path, CoreFileType::Lock);
 
