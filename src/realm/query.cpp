@@ -1822,38 +1822,37 @@ std::string Query::validate()
     return root_node()->validate(); // errors detected by QueryEngine
 }
 
-std::string Query::get_description(util::serializer::SerialisationState& state) const
+const std::string& Query::get_description(util::serializer::SerialisationState& state) const
 {
-    std::string description;
     if (root_node()) {
         if (m_view) {
             throw SerialisationError("Serialisation of a query constrained by a view is not currently supported");
         }
-        description = root_node()->describe_expression(state);
+        m_description_buffer = root_node()->describe_expression(state);
     }
     else {
         // An empty query returns all results and one way to indicate this
         // is to serialise TRUEPREDICATE which is functionally equivalent
-        description = "TRUEPREDICATE";
+        m_description_buffer = "TRUEPREDICATE";
     }
     if (this->m_ordering) {
-        description += " " + m_ordering->get_description(m_table);
+        m_description_buffer += " " + m_ordering->get_description(m_table);
     }
-    return description;
+    return m_description_buffer;
 }
 
-Query& Query::set_ordering(std::unique_ptr<DescriptorOrdering> ordering)
+Query& Query::set_ordering(util::bind_ptr<DescriptorOrdering> ordering)
 {
     m_ordering = std::move(ordering);
     return *this;
 }
 
-std::shared_ptr<DescriptorOrdering> Query::get_ordering()
+util::bind_ptr<DescriptorOrdering> Query::get_ordering()
 {
     return std::move(m_ordering);
 }
 
-std::string Query::get_description(const std::string& class_prefix) const
+const std::string& Query::get_description(const std::string& class_prefix) const
 {
     util::serializer::SerialisationState state(class_prefix);
     return get_description(state);

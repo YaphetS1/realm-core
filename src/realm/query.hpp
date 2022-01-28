@@ -41,6 +41,7 @@
 #include <realm/timestamp.hpp>
 #include <realm/handover_defs.hpp>
 #include <realm/util/serializer.hpp>
+#include <realm/util/bind_ptr.hpp>
 #include <realm/column_type_traits.hpp>
 
 namespace realm {
@@ -321,11 +322,11 @@ public:
 
     std::string validate();
 
-    std::string get_description(const std::string& class_prefix = "") const;
-    std::string get_description(util::serializer::SerialisationState& state) const;
+    const std::string& get_description(const std::string& class_prefix = "") const;
+    const std::string& get_description(util::serializer::SerialisationState& state) const;
 
-    Query& set_ordering(std::unique_ptr<DescriptorOrdering> ordering);
-    std::shared_ptr<DescriptorOrdering> get_ordering();
+    Query& set_ordering(util::bind_ptr<DescriptorOrdering> ordering);
+    util::bind_ptr<DescriptorOrdering> get_ordering();
 
     bool eval_object(const Obj& obj) const;
 
@@ -396,6 +397,7 @@ private:
 
     std::vector<QueryGroup> m_groups;
     mutable std::vector<TableKey> m_table_keys;
+    mutable std::string m_description_buffer;
 
     TableRef m_table;
 
@@ -412,7 +414,7 @@ private:
     LinkCollectionPtr m_source_collection;         // collections are owned by the query.
     TableView* m_source_table_view = nullptr;      // table views are not refcounted, and not owned by the query.
     std::unique_ptr<TableView> m_owned_source_table_view; // <--- except when indicated here
-    std::shared_ptr<DescriptorOrdering> m_ordering;
+    util::bind_ptr<DescriptorOrdering> m_ordering;
 };
 
 // Implementation:

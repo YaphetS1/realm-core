@@ -1,6 +1,7 @@
 #ifndef REALM_OBJECT_STORE_C_API_TYPES_HPP
 #define REALM_OBJECT_STORE_C_API_TYPES_HPP
 
+#include <memory>
 #include <realm.h>
 #include <realm/object-store/c_api/conversion.hpp>
 #include <realm/object-store/c_api/error.hpp>
@@ -367,10 +368,11 @@ struct realm_notification_token : realm::c_api::WrapC, realm::NotificationToken 
 
 struct realm_query : realm::c_api::WrapC {
     realm::Query query;
-    realm::DescriptorOrdering ordering;
+    realm::util::bind_ptr<realm::DescriptorOrdering> ordering;
     std::weak_ptr<realm::Realm> weak_realm;
 
-    explicit realm_query(realm::Query query, realm::DescriptorOrdering ordering, std::weak_ptr<realm::Realm> realm)
+    explicit realm_query(realm::Query query, realm::util::bind_ptr<realm::DescriptorOrdering> ordering,
+                         std::weak_ptr<realm::Realm> realm)
         : query(std::move(query))
         , ordering(std::move(ordering))
         , weak_realm(realm)
