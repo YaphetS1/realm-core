@@ -322,10 +322,11 @@ public:
 
     std::string validate();
 
-    const std::string& get_description(const std::string& class_prefix = "") const;
-    const std::string& get_description(util::serializer::SerialisationState& state) const;
+    std::string get_description(const std::string& class_prefix = "") const;
+    std::string get_description(util::serializer::SerialisationState& state) const;
 
     Query& set_ordering(util::bind_ptr<DescriptorOrdering> ordering);
+    // This will remove the ordering from the Query object
     util::bind_ptr<DescriptorOrdering> get_ordering();
 
     bool eval_object(const Obj& obj) const;
@@ -397,7 +398,6 @@ private:
 
     std::vector<QueryGroup> m_groups;
     mutable std::vector<TableKey> m_table_keys;
-    mutable std::string m_description_buffer;
 
     TableRef m_table;
 

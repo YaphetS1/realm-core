@@ -368,14 +368,13 @@ struct realm_notification_token : realm::c_api::WrapC, realm::NotificationToken 
 
 struct realm_query : realm::c_api::WrapC {
     realm::Query query;
-    realm::util::bind_ptr<realm::DescriptorOrdering> ordering;
     std::weak_ptr<realm::Realm> weak_realm;
 
     explicit realm_query(realm::Query query, realm::util::bind_ptr<realm::DescriptorOrdering> ordering,
                          std::weak_ptr<realm::Realm> realm)
         : query(std::move(query))
-        , ordering(std::move(ordering))
         , weak_realm(realm)
+        , ordering(std::move(ordering))
     {
     }
 
@@ -384,7 +383,29 @@ struct realm_query : realm::c_api::WrapC {
         return new realm_query{*this};
     }
 
+    realm::Query& get_query()
+    {
+        return query;
+    }
+
+    const realm::DescriptorOrdering& get_ordering() const
+    {
+        return ordering ? *ordering : null_ordering;
+    }
+
+    const char* get_description()
+    {
+        description = query.get_description();
+        if (ordering)
+            description += " " + ordering->get_description(query.get_table());
+        return description.c_str();
+    }
+
 private:
+    static realm::DescriptorOrdering null_ordering;
+    realm::util::bind_ptr<realm::DescriptorOrdering> ordering;
+    std::string description;
+
     realm_query(const realm_query&) = default;
 };
 
