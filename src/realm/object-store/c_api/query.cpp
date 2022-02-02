@@ -7,7 +7,6 @@
 #include <realm/parser/query_parser.hpp>
 #include <realm/parser/keypath_mapping.hpp>
 
-realm::DescriptorOrdering realm_query::null_ordering;
 namespace realm::c_api {
 
 namespace {

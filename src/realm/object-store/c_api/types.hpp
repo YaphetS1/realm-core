@@ -374,7 +374,7 @@ struct realm_query : realm::c_api::WrapC {
                          std::weak_ptr<realm::Realm> realm)
         : query(std::move(query))
         , weak_realm(realm)
-        , ordering(std::move(ordering))
+        , m_ordering(std::move(ordering))
     {
     }
 
@@ -390,21 +390,21 @@ struct realm_query : realm::c_api::WrapC {
 
     const realm::DescriptorOrdering& get_ordering() const
     {
-        return ordering ? *ordering : null_ordering;
+        static const realm::DescriptorOrdering null_ordering;
+        return m_ordering ? *m_ordering : null_ordering;
     }
 
     const char* get_description()
     {
-        description = query.get_description();
-        if (ordering)
-            description += " " + ordering->get_description(query.get_table());
-        return description.c_str();
+        m_description = query.get_description();
+        if (m_ordering)
+            m_description += " " + m_ordering->get_description(query.get_table());
+        return m_description.c_str();
     }
 
 private:
-    static realm::DescriptorOrdering null_ordering;
-    realm::util::bind_ptr<realm::DescriptorOrdering> ordering;
-    std::string description;
+    realm::util::bind_ptr<realm::DescriptorOrdering> m_ordering;
+    std::string m_description;
 
     realm_query(const realm_query&) = default;
 };
