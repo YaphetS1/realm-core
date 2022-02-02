@@ -1339,7 +1339,6 @@ ClientImpl::Connection::Connection(ClientImpl& client, connection_ident_type ide
     , m_protocol_envelope{std::get<0>(endpoint)}
     , m_address{std::get<1>(endpoint)}
     , m_port{std::get<2>(endpoint)}
-    , m_http_host{util::make_http_host(is_ssl(m_protocol_envelope), m_address, m_port)} // Throws
     , m_verify_servers_ssl_certificate{verify_servers_ssl_certificate}
     , m_ssl_trust_certificate_path{std::move(ssl_trust_certificate_path)}
     , m_ssl_verify_callback{std::move(ssl_verify_callback)}
@@ -1399,7 +1398,15 @@ void ClientImpl::Connection::on_idle()
 
 std::string ClientImpl::Connection::get_http_request_path() const
 {
-    std::string path = m_http_request_path_prefix; // Throws (copy)
+    using namespace std::string_view_literals;
+    const auto param = m_http_request_path_prefix.find('?') == std::string::npos ? "?baas_at="sv : "&baas_at="sv;
+
+    std::string path;
+    path.reserve(m_http_request_path_prefix.size() + param.size() + m_signed_access_token.size());
+    path += m_http_request_path_prefix;
+    path += param;
+    path += m_signed_access_token;
+
     return path;
 }
 
