@@ -4,6 +4,7 @@
 * <New feature description> (PR [#????](https://github.com/realm/realm-core/pull/????))
 * Add `util::UniqueFunction::target()`, which does the same thing as `std::function::target()`.
 * 'filter', 'sort', 'distinct', and 'limit' functions on Results added to the C-API. ([#5099](https://github.com/realm/realm-core/issues/5099))
+* Set and Dictionary supported in the C-API. ([#5031](https://github.com/realm/realm-core/issues/5031))
 * realm_query_get_description added to the C-API. ([#5106](https://github.com/realm/realm-core/issues/5106))
 
 ### Fixed
@@ -13,9 +14,16 @@
 * Subscription names correctly distinguish an empty string from a nullptr ([#5160](https://github.com/realm/realm-core/pull/5160), since v11.8.0)
 * Converting floats/doubles into Decimal128 would yield imprecise results ([#5184](https://github.com/realm/realm-core/pull/5184), since v6.1.0)
 * Fix some warnings when building with Xcode 13.3.
+* Using accented characters in class and field names may end the session ([#5196](https://github.com/realm/realm-core/pull/5196), since v10.2.0)
+* Calling `Realm::invalidate()` from inside `BindingContext::did_change()` could result in write transactions not being persisted to disk (since v11.8.0).
+* Calling `Realm::close()` or `Realm::invalidate()` from the async write callbacks could result in crashes (since v11.8.0).
+* Asynchronous writes did not work with queue-confined Realms (since v11.8.0).
+* Releasing all references to a Realm while an asynchronous write was in progress would sometimes result in use-after-frees (since v11.8.0).
+* Throwing exceptions from asynchronous write callbacks would result in crashes or the Realm being in an invalid state (since v11.8.0).
  
 ### Breaking changes
-* None.
+* Renamed SubscriptionSet::State::Superceded -> Superseded to correct typo.
+* Renamed SubscriptionSet::SupercededTag -> SupersededTag to correct typo.
 
 ### Compatibility
 * Fileformat: Generates files with format v22. Reads and automatically upgrade from fileformat v5.
