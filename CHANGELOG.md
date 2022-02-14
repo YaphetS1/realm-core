@@ -23,6 +23,7 @@
 * Throwing exceptions from asynchronous write callbacks would result in crashes or the Realm being in an invalid state (since v11.8.0).
 * Fix an error when compiling a watchOS Simulator target not supporting Thread-local storage ([#7623](https://github.com/realm/realm-swift/issues/7623), since v11.7.0)
 * Check, when opening a realm, that in-memory realms are not encrypted ([#5195](https://github.com/realm/realm-core/issues/5195))
+* Refreshing the user profile after the app has been destroyed leads to assertion failure ([#5238](https://github.com/realm/realm-core/issues/5238))
  
 ### Breaking changes
 * Renamed SubscriptionSet::State::Superceded -> Superseded to correct typo.
