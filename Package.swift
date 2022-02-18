@@ -25,9 +25,12 @@ var cxxSettings: [CXXSetting] = [
 ]
 
 #if swift(>=5.5)
+let securityLinkedFramework: LinkerSetting
 cxxSettings.append(.define("REALM_HAVE_SECURE_TRANSPORT", to: "1", .when(platforms: [.macOS, .macCatalyst, .iOS, .tvOS, .watchOS])))
+securityLinkedFramework = .linkedFramework("Security", .when(platforms: [.macOS, .iOS, .tvOS, .watchOS, .macCatalyst]))
 #else
 cxxSettings.append(.define("REALM_HAVE_SECURE_TRANSPORT", to: "1", .when(platforms: [.macOS, .iOS, .tvOS, .watchOS])))
+securityLinkedFramework = .linkedFramework("Security", .when(platforms: [.macOS, .iOS, .tvOS, .watchOS]))
 #endif
 
 let syncServerSources: [String] =  [
@@ -722,6 +725,7 @@ let package = Package(
             cxxSettings: cxxSettings,
             linkerSettings: [
                 .linkedLibrary("z"),
+                securityLinkedFramework
             ]),
         .target(
             name: "RealmQueryParser",
